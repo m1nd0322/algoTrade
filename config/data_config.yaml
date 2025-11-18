@@ -1,0 +1,126 @@
+# Data Collection Configuration
+
+data_sources:
+  primary: "yfinance"
+  secondary: "pandas-datareader"
+  backup: "alpha_vantage"
+
+# Default tickers to collect
+tickers:
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - TSLA
+  - META
+  - NVDA
+  - JPM
+  - V
+  - JNJ
+
+# Date range
+date_range:
+  start_date: "2020-01-01"
+  end_date: "2023-12-31"
+
+# Data fields to collect
+fields:
+  ohlcv:
+    - Open
+    - High
+    - Low
+    - Close
+    - Volume
+  adjusted:
+    - Adj Close
+
+# Data validation
+validation:
+  min_data_points: 252  # Minimum 1 year of data
+  max_missing_ratio: 0.05  # Max 5% missing data
+  check_duplicates: true
+  check_outliers: true
+
+# Preprocessing
+preprocessing:
+  handle_missing:
+    method: "forward_fill"  # Options: forward_fill, interpolate, drop
+    limit: 5  # Max consecutive fills
+
+  handle_outliers:
+    method: "clip"  # Options: clip, remove, winsorize
+    threshold: 5  # Standard deviations
+
+  adjust_splits: true
+  adjust_dividends: true
+
+# Feature engineering
+features:
+  technical_indicators:
+    moving_averages:
+      - name: "SMA_20"
+        period: 20
+        type: "simple"
+      - name: "SMA_50"
+        period: 50
+        type: "simple"
+      - name: "EMA_12"
+        period: 12
+        type: "exponential"
+      - name: "EMA_26"
+        period: 26
+        type: "exponential"
+
+    momentum:
+      - name: "RSI"
+        period: 14
+      - name: "MACD"
+        fast: 12
+        slow: 26
+        signal: 9
+      - name: "Stochastic"
+        k_period: 14
+        d_period: 3
+
+    volatility:
+      - name: "BB"
+        period: 20
+        std_dev: 2
+      - name: "ATR"
+        period: 14
+
+  returns:
+    - name: "daily_return"
+      type: "simple"
+    - name: "log_return"
+      type: "logarithmic"
+    - name: "cumulative_return"
+      type: "cumulative"
+
+# Data splitting
+split:
+  method: "time_series"  # Options: time_series, walk_forward
+  ratios:
+    train: 0.6
+    validation: 0.2
+    test: 0.2
+
+  walk_forward:
+    enabled: false
+    train_period: 252
+    test_period: 63
+
+# Normalization
+normalization:
+  method: "standard"  # Options: standard, minmax, robust
+  per_feature: true
+  save_scaler: true
+
+# Storage
+storage:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  features_dir: "data/features"
+  splits_dir: "data/splits"
+  file_format: "csv"  # Options: csv, parquet, hdf5
+  compression: null  # Options: null, gzip, bz2

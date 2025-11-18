@@ -1,0 +1,142 @@
+# Backtesting Configuration
+
+# Capital and position sizing
+capital:
+  initial_capital: 100000.0
+  currency: "USD"
+
+position_sizing:
+  method: "fixed_fraction"  # Options: fixed_amount, fixed_fraction, risk_based, kelly
+  fixed_fraction: 1.0  # 100% of capital
+  fixed_amount: 10000.0
+  max_position_size: 1.0  # Maximum 100% of capital per position
+
+  risk_based:
+    risk_per_trade: 0.02  # 2% risk per trade
+    stop_loss_percent: 0.05  # 5% stop loss
+
+  kelly:
+    enabled: false
+    fraction: 0.5  # Half Kelly
+
+# Trading costs
+costs:
+  commission:
+    type: "percentage"  # Options: percentage, fixed, tiered
+    value: 0.001  # 0.1%
+    min_commission: 1.0  # Minimum $1 per trade
+
+  slippage:
+    type: "percentage"  # Options: percentage, fixed, volume_based
+    value: 0.0005  # 0.05%
+
+  spread:
+    enabled: false
+    basis_points: 10  # 0.1%
+
+# Order execution
+execution:
+  order_type: "market"  # Options: market, limit, stop
+  fill_method: "close"  # Options: open, close, vwap
+  partial_fills: false
+
+  limit_order:
+    price_offset: 0.001  # 0.1% from current price
+    timeout: 1  # Days
+
+  stop_order:
+    trailing_stop: false
+    trailing_percent: 0.05
+
+# Risk management
+risk_management:
+  stop_loss:
+    enabled: true
+    type: "percentage"  # Options: percentage, fixed, atr_based
+    value: 0.05  # 5%
+    trailing: false
+
+  take_profit:
+    enabled: false
+    type: "percentage"
+    value: 0.10  # 10%
+
+  max_drawdown_limit:
+    enabled: true
+    value: 0.20  # Stop trading if 20% drawdown
+
+  max_consecutive_losses:
+    enabled: false
+    value: 5
+
+  daily_loss_limit:
+    enabled: false
+    value: 0.02  # 2% daily loss limit
+
+# Rebalancing
+rebalancing:
+  frequency: "daily"  # Options: daily, weekly, monthly, quarterly
+  method: "threshold"  # Options: calendar, threshold, drift
+  threshold: 0.05  # 5% deviation triggers rebalance
+
+# Benchmark
+benchmark:
+  enabled: true
+  ticker: "SPY"  # S&P 500 ETF
+  use_same_period: true
+
+# Performance calculation
+performance:
+  risk_free_rate: 0.02  # 2% annual risk-free rate
+  compounding: "daily"  # Options: daily, monthly, annual
+
+  metrics:
+    - total_return
+    - annual_return
+    - cagr
+    - volatility
+    - sharpe_ratio
+    - sortino_ratio
+    - calmar_ratio
+    - max_drawdown
+    - avg_drawdown
+    - win_rate
+    - profit_factor
+    - total_trades
+    - avg_trade_duration
+
+# Output
+output:
+  save_results: true
+  results_dir: "results/backtests"
+  save_trades: true
+  save_equity_curve: true
+  save_metrics: true
+
+  format:
+    trades: "csv"  # Options: csv, json, parquet
+    equity: "csv"
+    metrics: "json"
+
+# Logging
+logging:
+  enabled: true
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  log_dir: "results/logs"
+  log_trades: true
+  log_signals: true
+  log_metrics: true
+
+# Validation
+validation:
+  check_data_quality: true
+  check_survivorship_bias: true
+  check_lookahead_bias: true
+  min_trades: 30  # Minimum trades for valid backtest
+
+# Advanced settings
+advanced:
+  parallel_execution: true
+  num_workers: 4
+  cache_results: true
+  cache_dir: "results/.cache"
