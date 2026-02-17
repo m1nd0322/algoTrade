@@ -1,0 +1,220 @@
+# Trading Strategies Configuration
+
+# Traditional Quant Strategies
+traditional:
+  buy_and_hold:
+    enabled: true
+    params: {}
+
+  mean_reversion:
+    enabled: true
+    params:
+      window: 20
+      std_dev: 2.0
+      entry_threshold: -2.0
+      exit_threshold: 0.0
+      stop_loss: -0.05
+
+  momentum:
+    enabled: true
+    params:
+      lookback_period: 60
+      holding_period: 20
+      threshold: 0.05
+
+  absolute_momentum:
+    enabled: true
+    params:
+      lookback_period: 252
+      risk_free_rate: 0.02
+      threshold: 0.0
+
+  relative_momentum:
+    enabled: true
+    params:
+      lookback_period: 126
+      top_n: 5
+      rebalance_frequency: "monthly"
+
+  value_investing:
+    enabled: true
+    params:
+      pe_threshold: 15
+      pb_threshold: 1.5
+      rebalance_frequency: "quarterly"
+      min_market_cap: 1000000000  # $1B
+
+# Machine Learning Strategies
+machine_learning:
+  knn:
+    enabled: true
+    params:
+      n_neighbors: 5
+      weights: "distance"  # Options: uniform, distance
+      features:
+        - returns
+        - volume
+        - volatility
+        - rsi
+        - macd
+      prediction_horizon: 5
+      min_train_samples: 252
+
+  random_forest:
+    enabled: true
+    params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 5
+      min_samples_leaf: 2
+      max_features: "sqrt"
+      features:
+        - returns
+        - volume
+        - volatility
+        - sma_20
+        - sma_50
+        - rsi
+        - macd
+      prediction_horizon: 5
+      threshold: 0.6  # Probability threshold
+
+  xgboost:
+    enabled: true
+    params:
+      n_estimators: 100
+      learning_rate: 0.1
+      max_depth: 5
+      min_child_weight: 1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      gamma: 0
+      features:
+        - returns
+        - volume
+        - volatility
+        - sma_20
+        - sma_50
+        - rsi
+        - macd
+        - bb_upper
+        - bb_lower
+      prediction_horizon: 5
+
+  clustering:
+    enabled: true
+    params:
+      n_clusters: 5
+      algorithm: "kmeans"  # Options: kmeans, hierarchical, dbscan
+      features:
+        - returns
+        - volatility
+        - volume
+        - beta
+      rebalance_frequency: "monthly"
+
+# Deep Learning Strategies
+deep_learning:
+  cnn_candlestick:
+    enabled: true
+    params:
+      image_size: [64, 64]
+      lookback_window: 20
+      epochs: 100
+      batch_size: 32
+      learning_rate: 0.001
+      validation_split: 0.2
+      early_stopping:
+        enabled: true
+        patience: 10
+        min_delta: 0.001
+      model_architecture:
+        conv_layers:
+          - filters: 32
+            kernel_size: [3, 3]
+            activation: "relu"
+          - filters: 64
+            kernel_size: [3, 3]
+            activation: "relu"
+          - filters: 128
+            kernel_size: [3, 3]
+            activation: "relu"
+        dense_layers:
+          - units: 128
+            activation: "relu"
+            dropout: 0.5
+          - units: 64
+            activation: "relu"
+            dropout: 0.3
+
+  lstm_direction:
+    enabled: true
+    params:
+      sequence_length: 60
+      lstm_units: [128, 64]
+      dropout: 0.2
+      recurrent_dropout: 0.2
+      epochs: 100
+      batch_size: 32
+      learning_rate: 0.001
+      features:
+        - close
+        - volume
+        - returns
+        - volatility
+      prediction_type: "classification"  # Options: classification, regression
+      classes: 3  # Up, Down, Neutral
+
+  gru:
+    enabled: true
+    params:
+      sequence_length: 60
+      gru_units: [128, 64]
+      dropout: 0.2
+      recurrent_dropout: 0.2
+      epochs: 100
+      batch_size: 32
+      learning_rate: 0.001
+      features:
+        - close
+        - volume
+        - returns
+
+  autoencoder:
+    enabled: true
+    params:
+      encoding_dim: 32
+      sequence_length: 60
+      epochs: 100
+      batch_size: 32
+      learning_rate: 0.001
+      anomaly_threshold: 0.95  # Percentile
+      encoder_layers: [128, 64]
+      decoder_layers: [64, 128]
+
+  transformer:
+    enabled: true
+    params:
+      sequence_length: 60
+      num_heads: 8
+      num_layers: 4
+      d_model: 128
+      dff: 512
+      dropout: 0.1
+      epochs: 100
+      batch_size: 32
+      learning_rate: 0.0001
+      features:
+        - close
+        - volume
+        - returns
+        - volatility
+
+# General ML/DL settings
+general:
+  random_seed: 42
+  use_gpu: true
+  save_models: true
+  model_save_dir: "models/saved_models"
+  checkpoint_dir: "models/checkpoints"
+  log_metrics: true

@@ -1,0 +1,243 @@
+# Visualization Configuration
+
+# General settings
+general:
+  style: "seaborn"  # Options: seaborn, ggplot, bmh, fivethirtyeight
+  color_palette: "Set2"  # Options: Set1, Set2, tab10, husl, etc.
+  figure_size: [15, 10]
+  dpi: 100
+  save_format: "png"  # Options: png, jpg, svg, pdf
+  save_dir: "visualizations"
+  show_plots: false  # Set to true for interactive display
+  transparent_background: false
+
+# Font settings
+fonts:
+  family: "sans-serif"
+  size: 12
+  title_size: 16
+  label_size: 14
+  legend_size: 12
+
+# Chart types
+charts:
+  equity_curve:
+    enabled: true
+    params:
+      show_benchmark: true
+      show_drawdown: true
+      log_scale: false
+      show_trades: false  # Mark buy/sell points
+      line_width: 2
+      alpha: 0.8
+      grid: true
+      title: "Equity Curve"
+      ylabel: "Portfolio Value ($)"
+      xlabel: "Date"
+
+  drawdown:
+    enabled: true
+    params:
+      fill_color: "red"
+      alpha: 0.3
+      line_width: 1
+      show_max_dd: true
+      grid: true
+      title: "Drawdown Chart"
+      ylabel: "Drawdown (%)"
+      xlabel: "Date"
+
+  monthly_returns:
+    enabled: true
+    params:
+      type: "heatmap"  # Options: heatmap, bar
+      cmap: "RdYlGn"
+      annot: true
+      fmt: ".1f"
+      linewidths: 0.5
+      center: 0
+      title: "Monthly Returns Heatmap"
+
+  returns_distribution:
+    enabled: true
+    params:
+      bins: 50
+      show_normal_curve: true
+      show_stats: true
+      alpha: 0.7
+      title: "Returns Distribution"
+      xlabel: "Returns"
+      ylabel: "Frequency"
+
+  rolling_metrics:
+    enabled: true
+    params:
+      window: 60  # Days
+      metrics:
+        - sharpe_ratio
+        - volatility
+        - return
+      subplot_layout: "vertical"
+      title: "Rolling Performance Metrics"
+
+  risk_return_scatter:
+    enabled: true
+    params:
+      x_metric: "volatility"
+      y_metric: "annual_return"
+      size_metric: "sharpe_ratio"
+      color_by: "strategy_type"
+      show_labels: true
+      show_quadrants: true
+      alpha: 0.6
+      marker_size: 100
+      title: "Risk-Return Analysis"
+      xlabel: "Annualized Volatility (%)"
+      ylabel: "Annualized Return (%)"
+
+  strategy_comparison:
+    enabled: true
+    params:
+      chart_type: "bar"  # Options: bar, radar, grouped_bar
+      metrics:
+        - total_return
+        - sharpe_ratio
+        - max_drawdown
+        - win_rate
+        - profit_factor
+      orientation: "vertical"
+      show_values: true
+      title: "Strategy Comparison"
+
+  correlation_matrix:
+    enabled: true
+    params:
+      method: "pearson"  # Options: pearson, spearman
+      cmap: "coolwarm"
+      annot: true
+      fmt: ".2f"
+      square: true
+      linewidths: 0.5
+      title: "Strategy Correlation Matrix"
+
+  underwater_plot:
+    enabled: true
+    params:
+      fill_color: "steelblue"
+      alpha: 0.5
+      title: "Underwater Plot"
+      ylabel: "Drawdown from Peak (%)"
+      xlabel: "Date"
+
+  trade_analysis:
+    enabled: true
+    params:
+      show_profit_loss_dist: true
+      show_duration_dist: true
+      show_mae_mfe: true  # Maximum Adverse/Favorable Excursion
+      bins: 30
+      title: "Trade Analysis"
+
+  cumulative_returns:
+    enabled: true
+    params:
+      show_individual: true
+      show_mean: true
+      show_confidence_interval: true
+      confidence_level: 0.95
+      log_scale: false
+      title: "Cumulative Returns Comparison"
+
+# Dashboard layout (for multi-chart reports)
+dashboard:
+  enabled: true
+  layout:
+    rows: 3
+    cols: 2
+    figsize: [20, 15]
+
+  charts:
+    - position: [0, 0]
+      type: "equity_curve"
+      span: [1, 2]  # Span 2 columns
+    - position: [1, 0]
+      type: "drawdown"
+      span: [1, 1]
+    - position: [1, 1]
+      type: "monthly_returns"
+      span: [1, 1]
+    - position: [2, 0]
+      type: "returns_distribution"
+      span: [1, 1]
+    - position: [2, 1]
+      type: "strategy_comparison"
+      span: [1, 1]
+
+# Export settings
+export:
+  save_individual_charts: true
+  save_dashboard: true
+  create_html_report: true
+  create_pdf_report: false
+
+  naming_convention: "{ticker}_{strategy}_{chart_type}_{date}"
+  include_timestamp: true
+
+  subdirectories:
+    equity_curves: "equity_curves"
+    drawdowns: "drawdowns"
+    comparisons: "comparisons"
+    heatmaps: "heatmaps"
+    distributions: "distributions"
+    dashboards: "dashboards"
+
+# Interactive plots (using plotly)
+interactive:
+  enabled: true
+  library: "plotly"  # Options: plotly, bokeh
+
+  plotly:
+    theme: "plotly_white"  # Options: plotly, plotly_white, plotly_dark
+    config:
+      displayModeBar: true
+      displaylogo: false
+      toImageButtonOptions:
+        format: "png"
+        filename: "custom_image"
+        height: 1000
+        width: 1500
+        scale: 2
+
+# Color schemes for different strategy types
+color_schemes:
+  traditional:
+    - "#1f77b4"
+    - "#ff7f0e"
+    - "#2ca02c"
+    - "#d62728"
+    - "#9467bd"
+    - "#8c564b"
+
+  machine_learning:
+    - "#e377c2"
+    - "#7f7f7f"
+    - "#bcbd22"
+    - "#17becf"
+
+  deep_learning:
+    - "#aec7e8"
+    - "#ffbb78"
+    - "#98df8a"
+    - "#ff9896"
+    - "#c5b0d5"
+
+# Annotations
+annotations:
+  enabled: true
+  show_max_drawdown: true
+  show_best_return: true
+  show_worst_return: true
+  font_size: 10
+  color: "black"
+  background_color: "white"
+  alpha: 0.8
