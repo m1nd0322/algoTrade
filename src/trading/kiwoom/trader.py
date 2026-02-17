@@ -5,11 +5,18 @@ This module coordinates real-time trading by connecting strategies,
 data reception, order execution, and risk management.
 """
 
+import signal
 import pandas as pd
 from typing import Dict, List, Optional, Any
 from datetime import datetime, time
 import time as time_module
 from pathlib import Path
+
+try:
+    from PyQt5.QtWidgets import QApplication
+    HAS_PYQT5 = True
+except ImportError:
+    HAS_PYQT5 = False
 
 from src.trading.kiwoom.api import KiwoomAPI
 from src.trading.kiwoom.data_receiver import DataReceiver, MarketData
@@ -521,6 +528,48 @@ class LiveTrader(LoggerMixin):
             'strategy': order.strategy_name
         })
 
+    def _interruptible_sleep(self, seconds: float) -> bool:
+        """
+        Sleep in small intervals to allow fast shutdown.
+
+        Parameters
+        ----------
+        seconds : float
+            Total sleep duration
+
+        Returns
+        -------
+        bool
+            False if interrupted (is_running turned off), True otherwise
+        """
+        # Break sleep into 0.5 second intervals
+        elapsed = 0.0
+        interval = 0.5
+        while elapsed < seconds:
+            if not self.is_running:
+                return False
+            time_module.sleep(min(interval, seconds - elapsed))
+            elapsed += interval
+            # Process Qt events to keep Kiwoom callbacks alive
+            if HAS_PYQT5:
+                app = QApplication.instance()
+                if app:
+                    app.processEvents()
+        return True
+
+    def _register_signal_handlers(self) -> None:
+        """Register OS signal handlers for graceful shutdown."""
+        def _handle_signal(signum, frame):
+            self.logger.info(f"Signal {signum} received - stopping trader...")
+            self.stop()
+
+        try:
+            signal.signal(signal.SIGINT, _handle_signal)   # Ctrl+C
+            signal.signal(signal.SIGTERM, _handle_signal)  # kill
+        except (OSError, ValueError):
+            # signal handlers cannot be set from non-main thread
+            pass
+
     def start(self) -> None:
         """Start live trading."""
         if self.is_running:
@@ -528,15 +577,19 @@ class LiveTrader(LoggerMixin):
             return
 
         self.is_running = True
-        self.logger.info("Live trading started")
+        self._register_signal_handlers()
+        self.logger.info("Live trading started (press Ctrl+C to stop)")
 
         try:
             # Main trading loop
             while self.is_running:
                 # Check market hours
                 if not self._is_market_open():
-                    self.logger.info("Market is closed, waiting...")
-                    time_module.sleep(60)
+                    # Log only when status changes (avoid spam)
+                    self.logger.info("Market is closed, waiting... (checks every 30s)")
+                    # Small interval sleep so Ctrl+C responds quickly
+                    if not self._interruptible_sleep(30):
+                        break
                     continue
 
                 # Reset daily limits if new day
@@ -545,29 +598,39 @@ class LiveTrader(LoggerMixin):
                 # Update portfolio value
                 self._update_portfolio_value()
 
-                # Sleep
-                time_module.sleep(self.update_interval)
+                # Short sleep - responds to stop within update_interval seconds
+                if not self._interruptible_sleep(self.update_interval):
+                    break
 
         except KeyboardInterrupt:
-            self.logger.info("Received interrupt signal")
+            self.logger.info("KeyboardInterrupt received - stopping...")
         except Exception as e:
-            self.logger.error(f"Error in trading loop: {e}")
+            self.logger.error(f"Error in trading loop: {e}", exc_info=True)
         finally:
-            self.stop()
+            # Only call stop() if still flagged as running to avoid double-stop
+            if self.is_running:
+                self.stop()
 
     def stop(self) -> None:
-        """Stop live trading."""
+        """Stop live trading gracefully."""
         if not self.is_running:
             return
 
         self.is_running = False
+        self.logger.info("Stopping live trader...")
 
         # Cancel all active orders
-        cancelled = self.order_manager.cancel_all_orders()
-        self.logger.info(f"Cancelled {cancelled} active orders")
+        try:
+            cancelled = self.order_manager.cancel_all_orders()
+            self.logger.info(f"Cancelled {cancelled} active orders")
+        except Exception as e:
+            self.logger.error(f"Error cancelling orders: {e}")
 
         # Save state
-        self._save_state()
+        try:
+            self._save_state()
+        except Exception as e:
+            self.logger.error(f"Error saving state: {e}")
 
         self.logger.info("Live trading stopped")
 
